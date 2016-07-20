@@ -14,9 +14,6 @@ var fis3Cli = require('./lib/fis3cli');
 var utils = require('./lib/utils');
 var packageConf = require('./package.json');
 
-var globArgv = {
-  _: []
-};
 /*
  * 实例化一个Liftoff对象,用来加载fis
  * */
@@ -34,14 +31,14 @@ var cli = new Liftoff({
 
 var devFunc = function devFunc(p) {
   var modulePath = p || '';
-  utils.getFisConfigs(modulePath)
+  utils.getFisConfigs(process.cwd(),modulePath)
     .then(function (fileNames) {
       if (!fileNames.length) {
         fis.log.warn('当前目录[%s]未检索到模块,请检查是否正确配置fis3', modulePath || '项目根目录');
       }
       fileNames.every(function (fileFullName) {
         var moduleDir = path.basename(path.dirname(fileFullName));
-        var fisArgv = Object.create(globArgv);
+        var fisArgv = {_:[]};
         fisArgv._.push('release');
         fisArgv.r = modulePath ? path.join(modulePath, moduleDir) : moduleDir;
         cli.launch({
