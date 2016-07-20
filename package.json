@@ -1,20 +1,20 @@
 {
   "name": "fis3SmartyTool",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "为简化项目其它前端人员对fis3-smarty解决方案的学习成本,对项目涉及的fis3的操作进行封装,并输出简化版的命令行控制器",
   "main": "index.js",
   "scripts": {
     "test": "mocha tests/*.test.js",
     "patch": "npm version patch && sudo npm publish"
   },
-  "keywords":[
+  "keywords": [
     "fis",
     "fis3",
     "smarty"
   ],
   "author": {
-    "name":"jemmy zheng",
-    "url":"http://blog.52yzl.love"
+    "name": "jemmy zheng",
+    "url": "http://blog.52yzl.love"
   },
   "license": "MIT",
   "dependencies": {
@@ -44,7 +44,7 @@
     "fst": "./cli.js"
   },
   "bugs": {
-    "email":"blog.jemmy.me@google.com"
+    "email": "blog.jemmy.me@google.com"
   },
   "repository": {
     "type": "git",
