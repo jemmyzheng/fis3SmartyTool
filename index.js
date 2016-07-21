@@ -2,7 +2,6 @@
 * 修改自fis3-smarty(https://github.com/fex-team/fis3-smarty)
 * 针对新版fis3 进行了调整
 * */
-
 var path = require('path');
 var fis = require('fis3');
 var createBaseConf = function(fis, isMount) {
@@ -143,4 +142,7 @@ var createBaseConf = function(fis, isMount) {
     matchRules: matchRules
   }
 };
-module.exports = createBaseConf(fis);
+module.exports = {
+  fis: fis,
+  init: createBaseConf
+};
