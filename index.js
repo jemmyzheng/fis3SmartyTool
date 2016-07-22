@@ -3,7 +3,7 @@
 * 针对新版fis3 进行了调整
 * */
 var path = require('path');
-var fis = require('fis3');
+
 var createBaseConf = function(fis, isMount) {
   var sets = {
     'namespace': '',
@@ -143,6 +143,6 @@ var createBaseConf = function(fis, isMount) {
   }
 };
 module.exports = {
-  fis: fis,
+  fis: require('fis3'),
   init: createBaseConf
 };

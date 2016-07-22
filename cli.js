@@ -5,14 +5,19 @@
  * PanshiTool
  * 基于fis3-smarty解决方案的定制化开发命令集合
  */
-var path = require('path');
-var fs = require('fs');
-var program = require('commander');
-var Liftoff = require('liftoff');
+const path = require('path');
+const fs = require('fs');
+const readline = require('readline');
+const program = require('commander');
+const Liftoff = require('liftoff');
 var fis3 = require('fis3');
-var fis3Cli = require('./lib/fis3cli');
-var utils = require('./lib/utils');
-var packageConf = require('./package.json');
+const fis3Cli = require('./lib/fis3cli');
+const utils = require('./lib/utils');
+const packageConf = require('./package.json');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
 /*
  * 实例化一个Liftoff对象,用来加载fis
@@ -22,8 +27,6 @@ var cli = new Liftoff({
   processTitle: 'fis',
   moduleName: 'fis3',
   configName: 'fis-conf',
-
-  // only js supported!
   extensions: {
     '.js': null
   }
@@ -34,7 +37,7 @@ var lunchEnv = function (argv) {
     configPath: argv.f || argv.file
   }
 };
-var runFis = function (argv,command) {
+var runFis = function (argv, command, cbCtrl) {
   return function (env) {
     /*
      * 不使用全局fis3,保持fis3的版本由该工具控制
@@ -48,6 +51,9 @@ var runFis = function (argv,command) {
       fis.log.info('%s本地开发服务器: 端口%s', argv._[1] === 'start' ? '启动':'关闭',argv.port);
     }
     fis3.cli.run(argv, env);
+    if (cbCtrl && !cbCtrl.left) {
+      cbCtrl.cb && cbCtrl.cb();
+    }
   }
 };
 /*
@@ -75,20 +81,25 @@ var getFisConfigs = function (p) {
 /*
  * 根据模块配置信息依次编译
  * */
-var release = function (module,env) {
+var release = function (module,media,cbCtrl) {
   var fisArgv = {_:['release']};
-  fisArgv.r = program.base ? path.join(program.base, module) : module;
-  if (env) {
-    fisArgv.d = path.join('.','.output');
-    fisArgv._.push(env);
+  var runFuc;
+  if (module) {
+    fisArgv.r = program.base ? path.join(program.base, module) : module;
   }
-  var runFuc = runFis(fisArgv,'release');
+  if (media) {
+    fisArgv.d = path.join(process.env.PWD,'dist');
+    fisArgv._.push(media);
+  }
+  runFuc = runFis(fisArgv,'release',cbCtrl);
   cli.launch(lunchEnv(fisArgv), runFuc);
 };
-var releaseAll = function (configs, env) {
-  configs.every(function (fileFullName) {
+var releaseAll = function (configs, media, cbCtrl) {
+  fis.log.info('开始编译指定目录下所有模块:');
+  configs.every(function (fileFullName,n) {
     var moduleDir = path.basename(path.dirname(fileFullName));
-    release(moduleDir,env);
+    var cb = cbCtrl ? {left:configs.length - (n+1),cb: cbCtrl.cb} : null;
+    release(moduleDir,media,cb);
     return true;
   });
 };
@@ -109,10 +120,18 @@ var devFunc = function devFunc() {
     server("start",program.port);
   });
 };
-
-var outPutAll = function outPut(todo) {
-  getFisConfigs(program.root).then(function (fileNames) {
-    releaseAll(fileNames,todo)
+var outPutAll = function outPutAll(todo) {
+  getFisConfigs(program.base).then(function (fileNames) {
+    releaseAll(fileNames,todo,{left:0,cb:function () {
+      console.log(' a ha');
+    }});
+  });
+};
+var outPut = function output(module,todo) {
+  utils.isFis3Module(process.cwd(),program.base,module).then(function () {
+    release(module, todo);
+  }, function () {
+    fis.log.error('未找到指定模块[%s]的配置文件,请检查后重试',module);
   });
 };
 
@@ -155,10 +174,21 @@ program
   .command('deploy [module] [options...]')
   .description('deploy to the server side,this way will minify asset files ,uglify scripts and update version')
   .action(function (module) {
-    var confPath = path.join(process.cwd(),'fst.config');
-    var ftsConf = require(confPath);
-    outPutAll('prod');
-    //console.log(ftsConf);
-  })
-;
+    rl.question('你正在进行发布,请确定相关特性已测试,确定?(Y/N)', function(answer) {
+      if (answer.toUpperCase() === 'Y') {
+        var confPath = path.join(process.env.PWD,program.base || '','fst.config');
+        try {
+          var ftsConf = require(confPath);
+          if (module) {
+            outPut(module, 'prod');
+          } else {
+            outPutAll('prod');
+          }
+        } catch (e){
+          fis.log.error('指定模块所在根目录[%s]下未找到fst.config',program.base || '项目根目录');
+        }
+      }
+      rl.close();
+    })
+  });
 program.parse(process.argv);
