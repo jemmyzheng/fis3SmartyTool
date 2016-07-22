@@ -10,6 +10,7 @@ const fs = require('fs');
 const readline = require('readline');
 const program = require('commander');
 const Liftoff = require('liftoff');
+const _ = require('fis3/lib/util');
 var fis3 = require('fis3');
 const fis3Cli = require('./lib/fis3cli');
 const utils = require('./lib/utils');
@@ -94,12 +95,12 @@ var release = function (module,media,cbCtrl) {
   runFuc = runFis(fisArgv,'release',cbCtrl);
   cli.launch(lunchEnv(fisArgv), runFuc);
 };
-var releaseAll = function (configs, media, cbCtrl) {
+var releaseAll = function (configs, media, cb) {
   fis.log.info('开始编译指定目录下所有模块:');
   configs.every(function (fileFullName,n) {
     var moduleDir = path.basename(path.dirname(fileFullName));
-    var cb = cbCtrl ? {left:configs.length - (n+1),cb: cbCtrl.cb} : null;
-    release(moduleDir,media,cb);
+    var cbCtrl = cb ? {left:configs.length - (n+1),cb: cb} : null;
+    release(moduleDir,media,cbCtrl);
     return true;
   });
 };
@@ -114,29 +115,103 @@ var watch = function (reload) {
   }
   cli.launch({},runFis(fisArgv));
 };
+/*
+* 启动开发模式
+* */
 var devFunc = function devFunc() {
   getFisConfigs(program.base).then(function (fileNames) {
     releaseAll(fileNames);
     server("start",program.port);
   });
 };
-var outPutAll = function outPutAll(todo) {
+/*
+* 调用编译方法,生成编译后文件
+* */
+var outPutAll = function outPutAll(todo, cb) {
   getFisConfigs(program.base).then(function (fileNames) {
-    releaseAll(fileNames,todo,{left:0,cb:function () {
-      console.log(' a ha');
-    }});
+    releaseAll(fileNames,todo,cb);
   });
 };
-var outPut = function output(module,todo) {
+var outPut = function output(module,todo, cb) {
   utils.isFis3Module(process.cwd(),program.base,module).then(function () {
-    release(module, todo);
+    release(module, todo, cb && {left:0,cb:cb});
   }, function () {
     fis.log.error('未找到指定模块[%s]的配置文件,请检查后重试',module);
   });
 };
 
-fis3.cli = fis3Cli;
+/*
+* 发布编译后的文件配置文件指定的目录
+* */
+var getOutPath = function (conf,confName) {
+  return _.isAbsolute(conf[confName]) ?
+    conf[confName] : path.join(process.env.PWD, conf[confName]);
+};
+var deploy = function deploy(conf,module) {
+  return function () {
+    fis.log.info('输出编译后文件到指定目录');
+    var mapOutPath = getOutPath(conf, 'mapPath')
+      ,staticPath = getOutPath(conf, 'staticPath')
+      ,tempPath = getOutPath(conf, 'tempPath');
+    /*
+    * 输出资源映射文件
+    * */
+    if (mapOutPath) {
+      mapOutPath = path.join(mapOutPath,module ? module+'-map.json' : '');
+      _.del(mapOutPath);
+      _.copy(path.join(
+        process.env.PWD,
+        'dist',
+        'config',
+        module ? module+'-map.json' : ''),mapOutPath);
+    } else {
+      fis.log.warn('你没有配置资源映射文件发布目录');
+    }
+    /*
+    * 输出静态资源
+    * */
+    if(staticPath) {
+      staticPath = path.join(staticPath, module || '');
+      _.del(staticPath);
+      _.copy(path.join(process.env.PWD,'dist','static',module || ''),staticPath);
+    } else {
+      fis.log.warn('你没有配置静态资源发布目录');
+    }
+    /*
+    * 输出模版文件
+    * */
+    if (tempPath) {
+      tempPath = path.join(tempPath, module || '');
+      _.del(tempPath);
+      _.copy(path.join(process.env.PWD,'dist','views',module || ''),tempPath);
+    } else {
+      fis.log.warn('你没有配置模版文件发布目录');
+    }
+    fis.log.info('操作结束');
+  };
+};
+/*
+* 给deploy和qa用的动作
+* */
+var releaseAction = function (module,media) {
+  _.del(path.join(process.env.PWD,'dist'));
+  var confPath = path.join(process.env.PWD,program.base || '','fst.config');
+  try {
+    if (module) {
+      outPut(module, media, deploy(require(confPath),module));
+    } else {
+      outPutAll(media, deploy(require(confPath)));
+    }
+  } catch (e){
+    fis.log.error('指定模块所在根目录[%s]下未找到fst.config',program.base || '项目根目录');
+  }
+};
 
+fis3.cli = fis3Cli;// 覆盖原来的cli
+
+/*
+* 命令行设置
+* */
 program
   .version(packageConf.version + ' 基于fis3-' + fis3Cli.info.version)
   .usage('[command] [options]')
@@ -176,19 +251,17 @@ program
   .action(function (module) {
     rl.question('你正在进行发布,请确定相关特性已测试,确定?(Y/N)', function(answer) {
       if (answer.toUpperCase() === 'Y') {
-        var confPath = path.join(process.env.PWD,program.base || '','fst.config');
-        try {
-          var ftsConf = require(confPath);
-          if (module) {
-            outPut(module, 'prod');
-          } else {
-            outPutAll('prod');
-          }
-        } catch (e){
-          fis.log.error('指定模块所在根目录[%s]下未找到fst.config',program.base || '项目根目录');
-        }
+        releaseAction(module,'prod');
       }
       rl.close();
     })
+  });
+program
+  .command('qa [module] [options...]')
+  .description('release the source without do any minify or uglify,but also deploy to the server side for test')
+  .action(function (module) {
+    fis.log.info('以测试模式编译代码,并输出到服务器端代码中');
+    releaseAction(module,'qa');
+    rl.close();
   });
 program.parse(process.argv);
