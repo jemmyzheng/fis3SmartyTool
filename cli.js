@@ -91,7 +91,7 @@ var release = function (module,media,cbCtrl) {
     fisArgv.r = program.base ? path.join(program.base, module) : module;
   }
   if (media) {
-    fisArgv.d = path.join(process.env.PWD,'dist');
+    fisArgv.d = path.join(process.cwd(),'dist');
     fisArgv._.push(media);
   }
   runFuc = runFis(fisArgv,'release',cbCtrl);
@@ -147,7 +147,7 @@ var outPut = function output(module,todo, cb) {
 * */
 var getOutPath = function (conf,confName) {
   return _.isAbsolute(conf[confName]) ?
-    conf[confName] : path.join(process.env.PWD, conf[confName]);
+    conf[confName] : path.join(process.cwd(), conf[confName]);
 };
 var deploy = function deploy(conf,module) {
   return function () {
@@ -162,7 +162,7 @@ var deploy = function deploy(conf,module) {
       mapOutPath = path.join(mapOutPath,module ? module+'-map.json' : '');
       _.del(mapOutPath);
       _.copy(path.join(
-        process.env.PWD,
+        process.cwd(),
         'dist',
         'config',
         module ? module+'-map.json' : ''),mapOutPath);
@@ -175,7 +175,7 @@ var deploy = function deploy(conf,module) {
     if(staticPath) {
       staticPath = path.join(staticPath, module || '');
       _.del(staticPath);
-      _.copy(path.join(process.env.PWD,'dist','static',module || ''),staticPath);
+      _.copy(path.join(process.cwd(),'dist','static',module || ''),staticPath);
     } else {
       fis.log.warn('你没有配置静态资源发布目录');
     }
@@ -185,7 +185,7 @@ var deploy = function deploy(conf,module) {
     if (tempPath) {
       tempPath = path.join(tempPath, module || '');
       _.del(tempPath);
-      _.copy(path.join(process.env.PWD,'dist','views',module || ''),tempPath);
+      _.copy(path.join(process.cwd(),'dist','views',module || ''),tempPath);
     } else {
       fis.log.warn('你没有配置模版文件发布目录');
     }
@@ -196,8 +196,8 @@ var deploy = function deploy(conf,module) {
 * 给deploy和qa用的动作
 * */
 var releaseAction = function (module,media) {
-  _.del(path.join(process.env.PWD,'dist'));
-  var confPath = path.join(process.env.PWD,program.base || '','fst.config');
+  _.del(path.join(process.cwd(),'dist'));
+  var confPath = path.join(process.cwd(),program.base || '','fst.config');
   try {
     if (module) {
       outPut(module, media, deploy(require(confPath),module));

@@ -15,6 +15,7 @@
   ],
   "author": {
     "name": "jemmy zheng",
+    "postversion":"git push && git push --tags && npm publish",
     "url": "http://blog.52yzl.love"
   },
   "license": "MIT",
