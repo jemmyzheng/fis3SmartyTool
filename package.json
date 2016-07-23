@@ -1,6 +1,6 @@
 {
   "name": "fis3SmartyTool",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "为简化项目其它前端人员对fis3-smarty解决方案的学习成本,对项目涉及的fis3的操作进行封装,并输出简化版的命令行控制器",
   "main": "index.js",
   "scripts": {
