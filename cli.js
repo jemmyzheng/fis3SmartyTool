@@ -268,4 +268,11 @@ program
     releaseAction(module,'qa');
     rl.close();
   });
+program
+  .command('release [module]')
+  .description('release module alone.')
+  .action(function (module) {
+    release(module);
+    rl.close();
+  });
 program.parse(process.argv);

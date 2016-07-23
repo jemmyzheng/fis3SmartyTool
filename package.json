@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha tests/*.test.js",
     "patch": "npm version patch && npm publish",
-    "deploy": ""
+    "postversion": "git push && git push --tags && npm publish"
   },
   "keywords": [
     "fis",
@@ -15,7 +15,6 @@
   ],
   "author": {
     "name": "jemmy zheng",
-    "postversion": "git push && git push --tags && npm publish",
     "url": "http://blog.52yzl.love"
   },
   "license": "MIT",
