@@ -44,6 +44,7 @@ var runFis = function (argv, command, cbCtrl) {
      * 不使用全局fis3,保持fis3的版本由该工具控制
      * */
     fis3.require.paths.unshift(path.join(__dirname, 'node_modules', 'fis3', 'node_modules'));
+    fis3.require.paths.push(path.join(__dirname, 'node_modules'));
     fis3.cli.name = this.name;
     if (command === 'release') {
       fis.log.info('当前编译的模块: %s', path.basename(argv.r));
@@ -60,10 +61,11 @@ var runFis = function (argv, command, cbCtrl) {
 /*
  * 启动(重启)测试服务器
  * */
-var server = function (comd,opt) {
+var server = function (comd,port,type) {
   var fisArgv = {_:['server']};
   fisArgv._.push(comd);
-  fisArgv.port = opt || 8686;
+  fisArgv.port = port || 8686;
+  fisArgv.type = type || 'smarty';
   cli.launch({}, runFis(fisArgv,'server'));
 };
 /*
@@ -121,7 +123,7 @@ var watch = function (reload) {
 var devFunc = function devFunc() {
   getFisConfigs(program.base).then(function (fileNames) {
     releaseAll(fileNames);
-    server("start",program.port);
+    server("start",program.port,program.type);
   });
 };
 /*
@@ -217,6 +219,7 @@ program
   .usage('[command] [options]')
   .option('-b, --base <path>', 'set the root path of modules')
   .option('-P, --port <port>', 'set the port of local server,default 8686')
+  .option('-T, --type <type>', 'set the type of local server,default smarty')
   .option('-L, --live', 'use for the watch command, reload browser after release')
   .option('-M, --major', 'deploy the major change')
   .option('-m, --minor', 'deploy the minor change')
@@ -237,6 +240,7 @@ program
   .action(function (toDo) {
     if (~['start', 'stop', 'open'].indexOf(toDo)){
       server(toDo);
+      rl.close();
     } else {
       fis.log.error('没有你要的[%s]操作,请查看帮助信息',toDo);
     }
