@@ -38,7 +38,8 @@ var lunchEnv = function (argv) {
     configPath: argv.f || argv.file
   }
 };
-var runFis = function (argv, command, cbCtrl) {
+var runFis = function (argv, command, cbCtrl, log) {
+  console.log(log);
   return function (env) {
     /*
      * 不使用全局fis3,保持fis3的版本由该工具控制
@@ -46,12 +47,7 @@ var runFis = function (argv, command, cbCtrl) {
     fis3.require.paths.unshift(path.join(__dirname, 'node_modules', 'fis3', 'node_modules'));
     fis3.require.paths.push(path.join(__dirname, 'node_modules'));
     fis3.cli.name = this.name;
-    if (command === 'release') {
-      fis.log.info('当前编译的模块: %s', path.basename(argv.r));
-    }
-    if (command === 'server') {
-      fis.log.info('%s本地开发服务器: 端口%s', argv._[1] === 'start' ? '启动':'关闭',argv.port);
-    }
+    log && log();
     fis3.cli.run(argv, env);
     if (cbCtrl && !cbCtrl.left) {
       cbCtrl.cb && cbCtrl.cb();
@@ -61,12 +57,19 @@ var runFis = function (argv, command, cbCtrl) {
 /*
  * 启动(重启)测试服务器
  * */
-var server = function (comd,port,type) {
+const serverLog = {
+  'start' : '启动',
+  'stop' : '关闭',
+  'open' : '打开'
+};
+var server = function (todo,port,type) {
   var fisArgv = {_:['server']};
-  fisArgv._.push(comd);
+  fisArgv._.push(todo);
   fisArgv.port = port || 8686;
   fisArgv.type = type || 'smarty';
-  cli.launch({}, runFis(fisArgv,'server'));
+  cli.launch({}, runFis(fisArgv,'server','',function () {
+    fis.log.info('%s本地开发服务器: 端口%s', serverLog[todo] ,fisArgv.port);
+  }));
 };
 /*
 * 获取模块目录下的所有fis3配置文件
@@ -94,7 +97,9 @@ var release = function (module,media,cbCtrl) {
     fisArgv.d = path.join(process.cwd(),'dist');
     fisArgv._.push(media);
   }
-  runFuc = runFis(fisArgv,'release',cbCtrl);
+  runFuc = runFis(fisArgv,'release',cbCtrl, function (){
+    fis.log.info('当前编译的模块: %s', module || path.basename(process.cwd()));
+  });
   cli.launch(lunchEnv(fisArgv), runFuc);
 };
 var releaseAll = function (configs, media, cb) {
