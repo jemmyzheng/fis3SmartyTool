@@ -235,7 +235,7 @@ program
   .command('server <toDo>')
   .description('start or stop the local server')
   .action(function (toDo) {
-    if (~['start','stop'].indexOf(toDo)){
+    if (~['start', 'stop', 'open'].indexOf(toDo)){
       server(toDo);
     } else {
       fis.log.error('没有你要的[%s]操作,请查看帮助信息',toDo);

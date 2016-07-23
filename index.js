@@ -3,7 +3,6 @@
 * 针对新版fis3 进行了调整
 * */
 var path = require('path');
-
 var createBaseConf = function(fis, isMount) {
   var sets = {
     'namespace': '',
