@@ -43,7 +43,7 @@ var runFis = function (argv, command, cbCtrl) {
     /*
      * 不使用全局fis3,保持fis3的版本由该工具控制
      * */
-    fis3.require.paths.unshift(path.join(__dirname, 'node_modules'));
+    fis3.require.paths.unshift(path.join(__dirname, 'node_modules', 'fis3', 'node_modules'));
     fis3.cli.name = this.name;
     if (command === 'release') {
       fis.log.info('当前编译的模块: %s', path.basename(argv.r));
