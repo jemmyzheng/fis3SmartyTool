@@ -245,7 +245,7 @@ program
   .action(function (toDo) {
     if (~['start', 'stop', 'open'].indexOf(toDo)){
       server(toDo);
-    } else  if (toDo === 'clean'){
+    } else if (toDo === 'clean'){
       var serverInfo = localServer.serverInfo();
       fis.log.info('正在初始化本地测试服务器:');
       fis.log.info('清除静态资源目录:');
