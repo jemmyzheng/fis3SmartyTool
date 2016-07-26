@@ -15,6 +15,7 @@ var fis3 = require('fis3');
 const fis3Cli = require('./lib/fis3cli');
 const utils = require('./lib/utils');
 const packageConf = require('./package.json');
+const localServer = require('fis3-command-server/lib/util');
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
@@ -39,7 +40,6 @@ var lunchEnv = function (argv) {
   }
 };
 var runFis = function (argv, command, cbCtrl, log) {
-  console.log(log);
   return function (env) {
     /*
      * 不使用全局fis3,保持fis3的版本由该工具控制
@@ -241,14 +241,28 @@ program
   });
 program
   .command('server <toDo>')
-  .description('start or stop the local server')
+  .description('start , stop or clean the local server')
   .action(function (toDo) {
     if (~['start', 'stop', 'open'].indexOf(toDo)){
       server(toDo);
-      rl.close();
+    } else  if (toDo === 'clean'){
+      var serverInfo = localServer.serverInfo();
+      fis.log.info('正在初始化本地测试服务器:');
+      fis.log.info('清除静态资源目录:');
+      _.del(path.join(serverInfo.root,'static'));
+      fis.log.info('清除资源映射文件:');
+      _.del(path.join(serverInfo.root,'config'));
+      fis.log.info('清除路由配置信息:');
+      _.del(path.join(serverInfo.root,'server-conf'));
+      fis.log.info('清除测试数据:');
+      _.del(path.join(serverInfo.root,'test'));
+      fis.log.info('清除模版文件:');
+      _.del(path.join(serverInfo.root,'template'));
+      fis.log.info('ola');
     } else {
       fis.log.error('没有你要的[%s]操作,请查看帮助信息',toDo);
     }
+    rl.close();
   });
 program
   .command('watch [options]')
