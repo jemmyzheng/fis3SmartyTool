@@ -15,7 +15,6 @@ var createBaseConf = function(fis, isMount) {
   };
 
   fis.set('server.type', 'smarty');
-
   var matchRules = {
     // all release to $static dir
     '*': {
@@ -31,14 +30,15 @@ var createBaseConf = function(fis, isMount) {
       parser: fis.plugin('less'),
       rExt: '.css'
     },
-    '*.tmpl': {
-      parser: fis.plugin('bdtmpl', {
-        LEFT_DELIMITER : '<#',
-        RIGHT_DELIMITER : '#>'
-      }),
-      rExt: '.js'
+    '*.hbs': {
+      parser: fis.plugin('handlebars-4.x'),
+      rExt: '.js',
+      release:false
     },
     '*.{css,less}': {
+      preprocessor: fis.plugin('autoprefixer', {
+        "browsers": ["Chrome >= 30", "ie >= 8", "Opera >= 30", "Safari >= 6", "Firefox >= 20"]
+      }),
       optimizer: fis.plugin('clean-css')
     },
     '::image': {
@@ -46,6 +46,9 @@ var createBaseConf = function(fis, isMount) {
     },
     '*.png': {
       optimizer: fis.plugin('png-compressor')
+    },
+    '*placeholder.jpg':{
+      useHash: false
     },
     '/(**.tpl)': {
       preprocessor: fis.plugin('extlang'),
@@ -134,7 +137,15 @@ var createBaseConf = function(fis, isMount) {
   if (isMount !== false) {
     mount();
   }
-
+  //设置默认开发模式
+  fis.media('dev').match('*.js', {
+    useHash: false,
+    optimizer: null
+  });
+  fis.media('dev').match('*.{css,less}', {
+    useHash: false,
+    optimizer: null
+  });
   return {
     loadPath: path.join(__dirname, 'node_modules'),
     sets: sets,

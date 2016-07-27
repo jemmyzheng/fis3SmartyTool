@@ -14,6 +14,7 @@
       </div>
       {%widget name="common:widget/footer/footer.tpl"%}
     </div>
+    <script src="common:static/handlebars.runtime-v4.0.5.js"></script>
+    <script src="common:static/global.js"></script>
   {%/body%}
-
 {%/html%}

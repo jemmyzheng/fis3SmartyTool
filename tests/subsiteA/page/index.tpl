@@ -3,3 +3,6 @@
   {%widget name="A:widget/post-list/post-list.tpl" posts=$data.posts%}
   {%widget name="A:widget/post-list/post-list.tpl" posts=$data.posts%}
 {%/block%}
+{%script%}
+require('A:static/index.js');
+{%/script%}
