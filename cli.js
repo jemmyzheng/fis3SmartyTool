@@ -161,20 +161,6 @@ var deploy = function deploy(conf,module) {
       ,staticPath = getOutPath(conf, 'staticPath')
       ,tempPath = getOutPath(conf, 'tempPath');
     /*
-    * 输出资源映射文件
-    * */
-    if (mapOutPath) {
-      mapOutPath = path.join(mapOutPath,module ? module+'-map.json' : '');
-      _.del(mapOutPath);
-      _.copy(path.join(
-        process.cwd(),
-        'dist',
-        'config',
-        module ? module+'-map.json' : ''),mapOutPath);
-    } else {
-      fis.log.warn('你没有配置资源映射文件发布目录');
-    }
-    /*
     * 输出静态资源
     * */
     if(staticPath) {
@@ -193,6 +179,20 @@ var deploy = function deploy(conf,module) {
       _.copy(path.join(process.cwd(),'dist','views',module || ''),tempPath);
     } else {
       fis.log.warn('你没有配置模版文件发布目录');
+    }
+    /*
+     * 输出资源映射文件
+     * */
+    if (mapOutPath) {
+      mapOutPath = path.join(mapOutPath,module ? module+'-map.json' : '');
+      _.del(mapOutPath);
+      _.copy(path.join(
+        process.cwd(),
+        'dist',
+        'config',
+        module ? module+'-map.json' : ''),mapOutPath);
+    } else {
+      fis.log.warn('你没有配置资源映射文件发布目录');
     }
     fis.log.info('操作结束');
   };
