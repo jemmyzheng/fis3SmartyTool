@@ -26,6 +26,7 @@
     "fis-parser-handlebars-4.x": "^4.0.3",
     "fis-parser-less": "^0.1.2",
     "fis-parser-po": "^0.0.1",
+    "fis-parser-utc": "0.0.2",
     "fis-prepackager-js-i18n": "^0.0.2",
     "fis-prepackager-widget-inline": "^0.0.9",
     "fis3": "^3.4.17",
