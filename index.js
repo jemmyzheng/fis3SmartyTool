@@ -47,7 +47,7 @@ var createBaseConf = function(fis, isMount) {
     '*.png': {
       optimizer: fis.plugin('png-compressor')
     },
-    '*placeholder.jpg':{
+    '*placeholder.{jpg,png,gif}':{
       useHash: false
     },
     '/(**.tpl)': {
