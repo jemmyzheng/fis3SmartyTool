@@ -202,7 +202,7 @@ var deploy = function deploy(conf,module) {
 * */
 var releaseAction = function (module,media) {
   _.del(path.join(process.cwd(),'dist'));
-  var confPath = path.join(process.cwd(),program.base || '','fst.config');
+  var confPath = path.join(process.cwd(),'fst.config');
   try {
     if (module) {
       outPut(module, media, deploy(require(confPath),module));
